@@ -1,53 +1,86 @@
 import React from 'react';
-import { useLocation } from 'react-router-dom';
-import BubbleChart from '../components/BubbleChart';
+import { useNavigate, useLocation } from 'react-router-dom';
 
-// 상황별 샘플 데이터
-const sampleDataMap = {
-  혼밥: [
-    { name: '혼밥집 1', value: 40, color: '#ff7f0e' },
-    { name: '혼밥집 2', value: 60, color: '#1f77b4' },
-  ],
-  데이트: [
-    { name: '데이트 맛집 1', value: 70, color: '#ff69b4' },
-    { name: '데이트 맛집 2', value: 50, color: '#ff1493' },
-  ],
-  회식: [
-    { name: '회식 장소 1', value: 90, color: '#6a5acd' },
-    { name: '회식 장소 2', value: 80, color: '#8a2be2' },
-  ],
-  가족모임: [
-    { name: '가족식당 1', value: 85, color: '#2ca02c' },
-    { name: '가족식당 2', value: 65, color: '#98fb98' },
-  ],
-  '간단한 한 끼': [
-    { name: '분식집 1', value: 30, color: '#deb887' },
-    { name: '분식집 2', value: 35, color: '#d2691e' },
-  ],
-};
+const situations = [
+  { label: '친구랑 수다', color: '#E57373' },
+  { label: '기분전환이 필요할 때', color: '#F8BBD0' },
+  { label: '혼술하기 좋은', color: '#B0BEC5' },
+  { label: '아이와 함께', color: '#F06292' },
+  { label: '가족과 함께', color: '#9575CD' },
+  { label: '비 오는 날', color: '#78909C' },
+  { label: '해장하고 싶을 때', color: '#FFD54F' },
+  { label: '아식이 생각날 때', color: '#388E3C' },
+  { label: '건강 챙기고 싶을 때', color: '#E53935' },
+  { label: '분위기 좋은', color: '#F8BBD0' },
+  // ...원하는 만큼 추가
+];
 
 function ChartPage() {
+  const navigate = useNavigate();
   const location = useLocation();
-
-  // URL 쿼리 파싱 (e.g., ?situation=혼밥)
   const params = new URLSearchParams(location.search);
-  const situation = params.get('situation');
+  const city = params.get('city') || '서울특별시';
+  const district = params.get('district') || '';
 
-  const data = sampleDataMap[situation] || [];
-
-  const handleBubbleClick = (data) => {
-    alert(`선택한 식당: ${data.name}`);
-    // 또는 navigate(`/detail/${data.id}`) 등으로 연결
+  const handleBubbleClick = (situation) => {
+    // 식당 리스트 페이지로 이동
+    navigate(`/restaurants?city=${encodeURIComponent(city)}&district=${encodeURIComponent(district)}&situation=${encodeURIComponent(situation)}`);
   };
 
   return (
-    <div style={{ padding: '2rem' }}>
-      <h1>추천 식당 - {situation}</h1>
-      {data.length > 0 ? (
-        <BubbleChart data={data} onClick={handleBubbleClick} />
-      ) : (
-        <p>해당 상황에 맞는 추천 식당이 없어요.</p>
-      )}
+    <div style={{ background: '#F6F1E7', minHeight: '100vh', padding: '0 0 40px 0' }}>
+      {/* 상단 네비게이션 */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px 40px 0 40px' }}>
+        <img src="/logo.png" alt="로고" style={{ width: 48, height: 48 }} />
+        <div style={{ display: 'flex', gap: '48px', fontSize: '1.1rem', fontWeight: 500 }}>
+          <span>검색</span>
+          <span>스크랩</span>
+          <span>마이페이지</span>
+        </div>
+        <div style={{ width: 48, height: 48 }} />
+      </div>
+      {/* 안내 문구 */}
+      <div style={{ borderTop: '2px dashed #BDBDBD', margin: '32px 0 0 0' }} />
+      <div style={{ textAlign: 'center', margin: '40px 0 32px 0', fontSize: '1.3rem', fontWeight: 500 }}>
+        지금 당신의 상황에 딱 맞는 음식점을 골라볼까요?
+      </div>
+      {/* 버블 UI */}
+      <div style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 24,
+        maxWidth: 900,
+        margin: '0 auto'
+      }}>
+        {situations.map((s, i) => (
+          <div
+            key={i}
+            onClick={() => handleBubbleClick(s.label)}
+            style={{
+              width: 120 + Math.random() * 60,
+              height: 120 + Math.random() * 60,
+              background: s.color,
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#fff',
+              fontWeight: 700,
+              fontSize: '1.1rem',
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+              textAlign: 'center',
+              padding: 12,
+              transition: 'transform 0.15s',
+            }}
+          >
+            #{' '}{s.label}
+          </div>
+        ))}
+      </div>
+      <div style={{ borderTop: '2px dashed #BDBDBD', margin: '40px 0 0 0' }} />
     </div>
   );
 }

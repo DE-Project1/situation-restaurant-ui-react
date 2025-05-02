@@ -2,88 +2,96 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { districts } from '../utils/districtList';
 
-const situations = ['혼밥', '데이트', '회식', '가족모임', '간단한 한 끼'];
-
 function Home() {
   const navigate = useNavigate();
   const [selectedDistrict, setSelectedDistrict] = useState('');
-  const [selectedSituation, setSelectedSituation] = useState('');
 
   const handleSelect = () => {
-    if (selectedDistrict && selectedSituation) {
-      navigate(
-        `/chart?city=서울특별시&district=${encodeURIComponent(selectedDistrict)}&situation=${encodeURIComponent(selectedSituation)}`
-      );
+    if (selectedDistrict) {
+      navigate(`/loading?city=서울특별시&district=${encodeURIComponent(selectedDistrict)}`);
     } else {
-      alert('상황과 지역구를 모두 선택해주세요!');
+      alert('지역구를 선택해주세요!');
     }
   };
 
   return (
-    <div style={{ padding: '2rem', backgroundColor: '#F2ECDB', minHeight: '100vh' }}>
-      <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>🍽️ 상황별 식당 추천</h1>
-      <p>먼저 지역과 상황을 선택해 주세요. 가까운 곳부터 시작해볼까요?</p>
-
-      {/* 지역 선택 */}
-      <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-        <div style={{ padding: '0.6rem 1.2rem', fontSize: '1rem', backgroundColor: '#eee', borderRadius: '8px' }}>
-          서울특별시
+    <div style={{ background: '#F6F1E7', minHeight: '100vh', border: '4px solid #7EB5A6', boxSizing: 'border-box' }}>
+      {/* 상단 네비게이션 */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px 40px 0 40px' }}>
+        <img src="/logo.png" alt="로고" style={{ width: 48, height: 48 }} />
+        <div style={{ display: 'flex', gap: '48px', fontSize: '1.1rem', fontWeight: 500 }}>
+          <span style={{ cursor: 'pointer' }} onClick={() => navigate('/search')}>검색</span>
+          <span style={{ cursor: 'pointer' }} onClick={() => navigate('/scrap')}>스크랩</span>
+          <span style={{ cursor: 'pointer' }} onClick={() => navigate('/mypage')}>마이페이지</span>
         </div>
-
-        <select
-          value={selectedDistrict}
-          onChange={(e) => setSelectedDistrict(e.target.value)}
-        >
-          <option value="">지역구</option>
-          {districts.map((d) => (
-            <option key={d} value={d}>{d}</option>
-          ))}
-        </select>
+        <div style={{ width: 48, height: 48 }} /> {/* 오른쪽 여백 맞춤용 */}
       </div>
 
-      {/* 상황 선택 */}
+      {/* 메인 컨텐츠 */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', margin: '40px 80px 0 80px' }}>
+        {/* 왼쪽 텍스트 */}
+        <div>
+          <div style={{ borderTop: '2px solid #222', width: 400, marginBottom: 32 }} />
+          <h1 style={{ fontSize: '3rem', fontWeight: 700, margin: 0, lineHeight: 1.2 }}>
+            오늘의 상황,<br />오늘의 맛집
+          </h1>
+          <div style={{ margin: '32px 0 0 0', fontSize: '1.2rem', color: '#222', letterSpacing: 1 }}>
+            서울특별시 1,000,000개의 식당 식당 데이터 수<br />
+            수집된 총 리뷰 수
+          </div>
+        </div>
+        {/* 오른쪽 아이콘 */}
+        <img src="/food-illustration.png" alt="음식 아이콘" style={{ width: 160, height: 160, marginTop: 24 }} />
+      </div>
+
+      {/* 안내 문구 */}
+      <div style={{ color: '#A05A4A', fontSize: '1.2rem', margin: '40px 0 0 80px', fontWeight: 500 }}>
+        상황에 따라, 기분에 따라, 나만의 맛집을 만나보세요 !
+      </div>
+
+      {/* 구분선 */}
+      <div style={{ borderTop: '2px dashed #BDBDBD', margin: '32px 0' }} />
+
+      {/* 지역 선택 박스 */}
       <div style={{
-        marginTop: '2rem',
-        display: 'flex',
-        gap: '1rem',
-        flexWrap: 'wrap',
-        justifyContent: 'center'
+        background: '#fff',
+        border: '2px solid #BDBDBD',
+        borderRadius: 12,
+        margin: '0 auto',
+        maxWidth: 700,
+        padding: '32px 24px',
+        textAlign: 'center'
       }}>
-        {situations.map((s, i) => (
-          <button
-            key={i}
-            style={{
-              padding: '0.75rem 1.5rem',
-              fontSize: '1rem',
-              borderRadius: '10px',
-              border: selectedSituation === s ? '2px solid #000' : '1px solid #ccc',
-              background: selectedSituation === s ? '#eaeaea' : '#f9f9f9',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-            }}
-            onClick={() => setSelectedSituation(s)}
+        <div style={{ fontSize: '1.1rem', marginBottom: 24 }}>
+          먼저 지역을 선택해 주세요. 가까운 곳부터 시작해볼까요?
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 16 }}>
+          <select style={{ minWidth: 160, fontSize: '1.1rem' }} disabled>
+            <option>서울특별시</option>
+          </select>
+          <select
+            style={{ minWidth: 160, fontSize: '1.1rem' }}
+            value={selectedDistrict}
+            onChange={e => setSelectedDistrict(e.target.value)}
           >
-            {s}
+            <option value="">지역구</option>
+            {districts.map(d => (
+              <option key={d} value={d}>{d}</option>
+            ))}
+          </select>
+          <button
+            style={{
+              background: '#111',
+              color: '#fff',
+              fontWeight: 700,
+              fontSize: '1.1rem',
+              padding: '0 32px'
+            }}
+            onClick={handleSelect}
+          >
+            선택
           </button>
-        ))}
-      </div>
-
-      {/* 선택 버튼 */}
-      <div style={{ marginTop: '2rem' }}>
-        <button
-          onClick={handleSelect}
-          style={{
-            padding: '0.8rem 2rem',
-            fontSize: '1.1rem',
-            backgroundColor: '#000',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer'
-          }}
-        >
-          선택
-        </button>
+        </div>
       </div>
     </div>
   );

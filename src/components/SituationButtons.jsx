@@ -1,6 +1,10 @@
+import { useNavigate } from 'react-router-dom';
+
 const situations = ['혼밥', '데이트', '회식', '가족모임', '간단한 한 끼'];
 
 function SituationButtons() {
+  const navigate = useNavigate();
+
   return (
     <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
       {situations.map((situation, idx) => (
