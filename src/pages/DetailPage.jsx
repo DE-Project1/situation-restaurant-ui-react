@@ -4,23 +4,24 @@ import axios from 'axios';
 
 function DetailPage() {
   const location = useLocation();
-  const { district, clusterId, clusterName } = location.state || {};
+  const { district, clusterId, clusterName, color } = location.state || {};
   const [places, setPlaces] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 21;
 
   useEffect(() => {
     if (!district || !clusterId) return;
 
     const fetchPlaces = async () => {
       try {
-        const response = await axios.get('https://api.where2eat.r-e.kr', {
-    
+        const response = await axios.get('https://api.where2eat.r-e.kr/regions/places', {
           params: {
             district,
-            clusterId: Number(clusterId),
+            cluster_id: Number(clusterId),
           },
-          
         });
         setPlaces(response.data);
+        setCurrentPage(1); // Reset page when data updates
       } catch (error) {
         console.error('음식점 리스트 불러오기 실패:', error);
       }
@@ -29,26 +30,98 @@ function DetailPage() {
     fetchPlaces();
   }, [district, clusterId]);
 
+  const totalPages = Math.ceil(places.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentItems = places.slice(startIndex, startIndex + itemsPerPage);
+
+  const getPageNumbers = () => {
+    const pages = [];
+
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+
+      const left = Math.max(2, currentPage - 2);
+      const right = Math.min(totalPages - 1, currentPage + 2);
+
+      if (left > 2) pages.push('...');
+      for (let i = left; i <= right; i++) pages.push(i);
+      if (right < totalPages - 1) pages.push('...');
+      pages.push(totalPages);
+    }
+
+    return pages;
+  };
+
   return (
     <div style={styles.container}>
-      <h2 style={styles.title}>
-        {district} - {clusterName}에 어울리는 음식점
+      <h2 style={{ ...styles.title, color: color || '#333' }}>
+        {district}<br />{clusterName}에 어울리는 음식점
       </h2>
 
       <div style={styles.list}>
-        {places.length > 0 ? (
-          places.map((place, index) => (
-            <div key={index} style={styles.card}>
-              <h3 style={styles.name}>{place.name}</h3>
-              <p style={styles.category}>{place.category}</p>
-              <p style={styles.address}>{place.address}</p>
-              <p style={styles.rating}>⭐ {place.rating.toFixed(1)}</p>
-            </div>
+        {currentItems.length > 0 ? (
+          currentItems.map((place, index) => (
+            <a
+              key={index}
+              href={`https://map.naver.com/p/entry/place/${place.place_id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={styles.cardLink}
+            >
+              <div style={styles.card}>
+                <h3 style={styles.name}>{place.name}</h3>
+                <p style={styles.category}>{place.category}</p>
+                <p style={styles.address}>{place.address}</p>
+                <p style={styles.rating}>
+                  {Number(place.naver_rating) > 0
+                    ? `⭐ ${Number(place.naver_rating).toFixed(2)}`
+                    : '⭐ 평점 없음'}
+                </p>
+              </div>
+            </a>
           ))
         ) : (
-          <p style={styles.noResult}>해당 상황에 맞는 음식점을 찾을 수 없습니다.</p>
+          <p style={styles.noResult}> </p>
         )}
       </div>
+
+      {totalPages > 1 && (
+        <div style={styles.pagination}>
+          <button
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            style={{ ...styles.pageButton, visibility: currentPage === 1 ? 'hidden' : 'visible' }}
+          >
+            이전
+          </button>
+
+          {getPageNumbers().map((page, idx) =>
+            page === '...' ? (
+              <span key={idx} style={styles.ellipsis}>…</span>
+            ) : (
+              <button
+                key={idx}
+                onClick={() => setCurrentPage(page)}
+                style={{
+                  ...styles.pageButton,
+                  backgroundColor: currentPage === page ? '#333' : '#fff',
+                  color: currentPage === page ? '#fff' : '#333',
+                }}
+              >
+                {page}
+              </button>
+            )
+          )}
+
+          <button
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            style={{ ...styles.pageButton, visibility: currentPage === totalPages ? 'hidden' : 'visible' }}
+          >
+            다음
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -104,6 +177,32 @@ const styles = {
     textAlign: 'center',
     fontSize: 16,
     color: '#888',
+  },
+  cardLink: {
+    textDecoration: 'none',
+    color: 'inherit',
+  },
+  pagination: {
+    marginTop: 30,
+    textAlign: 'center',
+    display: 'flex',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  pageButton: {
+    padding: '6px 12px',
+    fontSize: 14,
+    border: '1px solid #333',
+    borderRadius: 4,
+    cursor: 'pointer',
+    backgroundColor: '#fff',
+    transition: 'all 0.2s ease',
+  },
+  ellipsis: {
+    padding: '6px 12px',
+    fontSize: 14,
+    color: '#999',
   },
 };
 

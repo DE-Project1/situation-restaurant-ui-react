@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import foodImage from '/src/assets/food.png';
 
 function Home() {
   const navigate = useNavigate();
@@ -22,27 +23,23 @@ function Home() {
   return (
     <div style={styles.container}>
       <div style={styles.content}>
-        <div>
-          <h1 style={styles.title}>
-            <strong>오늘의 상황,<br />오늘의 맛집</strong>
-          </h1>
-          <p style={styles.subtitle}>서울특별시 1,000,000개의 식당 식당 데이터 수</p>
+        <div style={styles.textSection}>
+          <h1 style={styles.title}>오늘의 상황,<br />오늘의 맛집</h1>
+          <p style={styles.subtitle}>서울특별시 <span style={styles.num}>340,000</span>개의 식당 식당 데이터 수</p>
           <p style={styles.subtitle}>수집된 총 리뷰 수</p>
           <p style={styles.highlight}>상황에 따라, 기분에 따라, 나만의 맛집을 만나보세요 !</p>
         </div>
-        <div>
-          <img
-            src="/food-icon.svg"
-            alt="음식 아이콘"
-            style={{ width: 100, height: 'auto' }}
-          />
-        </div>
+        <img
+          src={foodImage}
+          alt="음식 아이콘"
+          style={styles.foodImage}
+        />
       </div>
 
       <hr style={styles.divider} />
 
       <div style={styles.selectionBox}>
-        <p>먼저 지역을 선택해 주세요. 가까운 곳부터 시작해볼까요?</p>
+        <p style={styles.selectTitle}>먼저 지역을 선택해 주세요. 가까운 곳부터 시작해볼까요?</p>
         <div style={styles.selectRow}>
           <select disabled style={{ ...styles.select, backgroundColor: '#eee' }}>
             <option>서울특별시</option>
@@ -68,7 +65,7 @@ function Home() {
 
 const styles = {
   container: {
-    padding: 40,
+    padding: '60px 80px',
     backgroundColor: '#f7f2e8',
     fontFamily: "'Pretendard', sans-serif",
     minHeight: '100vh',
@@ -79,52 +76,73 @@ const styles = {
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  textSection: {
+    flex: 1,
+    paddingRight: 40,
+  },
   title: {
-    fontSize: 36,
-    lineHeight: 1.4,
-    marginBottom: 10,
+    fontSize: 48,
+    fontWeight: 'bold',
+    lineHeight: 1.5,
+    marginBottom: 24,
   },
   subtitle: {
-    fontSize: 18,
-    margin: '6px 0',
+    fontSize: 20,
+    marginBottom: 8,
+  },
+  num: {
+    fontFamily: 'monospace',
+    fontWeight: 600,
   },
   highlight: {
-    marginTop: 12,
-    color: '#a5443f',
-    fontWeight: 'bold',
+    marginTop: 16,
+    fontSize: 18,
+    color: '#b54848',
+    fontWeight: 600,
+  },
+  foodImage: {
+    width: 140,
+    height: 'auto',
+    marginLeft: 20,
   },
   divider: {
-    margin: '40px 0',
-    borderTop: '1px dashed #aaa',
+    margin: '60px 0 50px',
+    borderTop: '2px dashed #aaa',
   },
   selectionBox: {
     backgroundColor: '#fff',
-    padding: 24,
+    padding: 32,
     border: '1px solid #ccc',
-    borderRadius: 6,
-    maxWidth: 800,
+    borderRadius: 8,
+    maxWidth: 900,
     margin: '0 auto',
+  },
+  selectTitle: {
+    fontSize: 18,
+    marginBottom: 20,
+    textAlign: 'center',
   },
   selectRow: {
     display: 'flex',
     justifyContent: 'center',
-    gap: 16,
-    marginTop: 16,
+    alignItems: 'center',
+    gap: 18,
   },
   select: {
-    padding: 10,
+    padding: 12,
     fontSize: 16,
     borderRadius: 4,
     border: '1px solid #aaa',
-    width: 160,
+    width: 170,
   },
   button: {
     backgroundColor: '#000',
     color: '#fff',
-    padding: '10px 18px',
+    padding: '12px 20px',
     fontSize: 16,
     border: 'none',
     cursor: 'pointer',
+    borderRadius: 4,
   },
 };
 

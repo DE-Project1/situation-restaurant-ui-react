@@ -6,7 +6,6 @@ function ChartPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { district } = location.state || {};
-
   const [clusters, setClusters] = useState([]);
 
   useEffect(() => {
@@ -24,24 +23,15 @@ function ChartPage() {
         const data = response.data;
         const maxCount = Math.max(...data.map(c => Number(c.count) || 1), 1);
 
-        const rowCount = 3;
-        const spacing = 30;
-
-        const generatedClusters = data.map((c, idx) => {
+        const generatedClusters = data.map((c, index) => {
           const normalized = Math.max(Number(c.count), 1);
-          const size = 60 + 140 * (normalized / maxCount);
-
-          const row = idx % rowCount;
-          const col = Math.floor(idx / rowCount);
-
-          const top = 10 + row * spacing + Math.random() * 10;
-          const left = 10 + col * spacing + Math.random() * 10;
+          const size = 60 + 120 * (normalized / maxCount);
+          const color = randomColor(index);
 
           return {
             ...c,
             size,
-            top,
-            left,
+            color,
           };
         });
 
@@ -54,12 +44,13 @@ function ChartPage() {
     fetchClusters();
   }, [district, navigate]);
 
-  const handleClick = (clusterId, clusterName) => {
+  const handleClick = (clusterId, clusterName, color) => {
     navigate('/detail', {
       state: {
         district,
         clusterId,
         clusterName,
+        color,
       },
     });
   };
@@ -69,31 +60,28 @@ function ChartPage() {
       <div style={styles.header}>
         <div style={styles.selectBar}>
           <select style={styles.select} disabled>
-            <option>서울특별시</option>
+            <option style={{ color: '#000' }}>서울특별시</option>
           </select>
           <select style={styles.select} disabled>
-            <option>{district}</option>
+            <option style={{ color: '#000' }}>{district}</option>
           </select>
         </div>
         <p>지금 당신의 상황에 딱 맞는 음식점을 골라볼까요?</p>
       </div>
 
       <div style={styles.visualArea}>
-        {clusters.map((cluster, index) => {
-          const color = randomColor(index);
-          const fontSize = `${cluster.size * 0.11}px`; // 버블 크기에 비례한 글씨 크기
+        {clusters.map((cluster) => {
+          const fontSize = `${cluster.size * 0.11}px`;
 
           return (
             <div
               key={cluster.cluster_id}
-              onClick={() => handleClick(cluster.cluster_id, cluster.cluster_name)}
+              onClick={() => handleClick(cluster.cluster_id, cluster.cluster_name, cluster.color)}
               style={{
                 ...styles.bubble,
-                width: `${cluster.size}px`,
-                height: `${cluster.size}px`,
-                backgroundColor: color,
-                top: `${cluster.top}%`,
-                left: `${cluster.left}%`,
+                width: cluster.size,
+                height: cluster.size,
+                backgroundColor: cluster.color,
                 fontSize,
               }}
             >
@@ -144,34 +132,30 @@ const styles = {
     backgroundColor: '#eee',
   },
   visualArea: {
-    position: 'relative',
+    display: 'flex',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: '20px',
     width: '100%',
+    maxWidth: '1200px',
+    margin: '0 auto',
     height: '80vh',
-    border: '1px dashed #ccc',
-    overflow: 'hidden',
+    overflow: 'auto',
   },
   bubble: {
-    position: 'absolute',
     borderRadius: '50%',
-    cursor: 'pointer',
-    transform: 'translate(-50%, -50%)',
-    overflow: 'hidden',
+    aspectRatio: '1 / 1',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    aspectRatio: '1 / 1',
     color: '#fff',
     fontWeight: '900',
+    cursor: 'pointer',
     textAlign: 'center',
-    padding: 0,
-    transition: 'transform 0.3s ease-in-out',
   },
   textWrapper: {
     width: '90%',
-    height: '90%',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
     textAlign: 'center',
     wordBreak: 'keep-all',
     overflowWrap: 'break-word',
