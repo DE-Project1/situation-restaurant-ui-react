@@ -1,100 +1,131 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { districts } from '../utils/districtList';
 
 function Home() {
   const navigate = useNavigate();
   const [selectedDistrict, setSelectedDistrict] = useState('');
 
+  const districts = [
+    '강남구', '강동구', '강북구', '강서구', '관악구', '광진구', '구로구', '금천구',
+    '노원구', '도봉구', '동대문구', '동작구', '마포구', '서대문구', '서초구', '성동구',
+    '성북구', '송파구', '양천구', '영등포구', '용산구', '은평구', '종로구', '중구', '중랑구'
+  ];
+
   const handleSelect = () => {
-    if (selectedDistrict) {
-      navigate(`/loading?city=서울특별시&district=${encodeURIComponent(selectedDistrict)}`);
-    } else {
+    if (!selectedDistrict) {
       alert('지역구를 선택해주세요!');
+      return;
     }
+    navigate('/loading', { state: { district: selectedDistrict } });
   };
 
   return (
-    <div style={{ background: '#F6F1E7', minHeight: '100vh', border: '4px solid #7EB5A6', boxSizing: 'border-box' }}>
-      {/* 상단 네비게이션 */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px 40px 0 40px' }}>
-        <img src="/logo.png" alt="로고" style={{ width: 48, height: 48 }} />
-        <div style={{ display: 'flex', gap: '48px', fontSize: '1.1rem', fontWeight: 500 }}>
-          <span style={{ cursor: 'pointer' }} onClick={() => navigate('/search')}>검색</span>
-          <span style={{ cursor: 'pointer' }} onClick={() => navigate('/scrap')}>스크랩</span>
-          <span style={{ cursor: 'pointer' }} onClick={() => navigate('/mypage')}>마이페이지</span>
-        </div>
-        <div style={{ width: 48, height: 48 }} /> {/* 오른쪽 여백 맞춤용 */}
-      </div>
-
-      {/* 메인 컨텐츠 */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', margin: '40px 80px 0 80px' }}>
-        {/* 왼쪽 텍스트 */}
+    <div style={styles.container}>
+      <div style={styles.content}>
         <div>
-          <div style={{ borderTop: '2px solid #222', width: 400, marginBottom: 32 }} />
-          <h1 style={{ fontSize: '3rem', fontWeight: 700, margin: 0, lineHeight: 1.2 }}>
-            오늘의 상황,<br />오늘의 맛집
+          <h1 style={styles.title}>
+            <strong>오늘의 상황,<br />오늘의 맛집</strong>
           </h1>
-          <div style={{ margin: '32px 0 0 0', fontSize: '1.2rem', color: '#222', letterSpacing: 1 }}>
-            서울특별시 1,000,000개의 식당 식당 데이터 수<br />
-            수집된 총 리뷰 수
-          </div>
+          <p style={styles.subtitle}>서울특별시 1,000,000개의 식당 식당 데이터 수</p>
+          <p style={styles.subtitle}>수집된 총 리뷰 수</p>
+          <p style={styles.highlight}>상황에 따라, 기분에 따라, 나만의 맛집을 만나보세요 !</p>
         </div>
-        {/* 오른쪽 아이콘 */}
-        <img src="/food-illustration.png" alt="음식 아이콘" style={{ width: 160, height: 160, marginTop: 24 }} />
+        <div>
+          <img
+            src="/food-icon.svg"
+            alt="음식 아이콘"
+            style={{ width: 100, height: 'auto' }}
+          />
+        </div>
       </div>
 
-      {/* 안내 문구 */}
-      <div style={{ color: '#A05A4A', fontSize: '1.2rem', margin: '40px 0 0 80px', fontWeight: 500 }}>
-        상황에 따라, 기분에 따라, 나만의 맛집을 만나보세요 !
-      </div>
+      <hr style={styles.divider} />
 
-      {/* 구분선 */}
-      <div style={{ borderTop: '2px dashed #BDBDBD', margin: '32px 0' }} />
-
-      {/* 지역 선택 박스 */}
-      <div style={{
-        background: '#fff',
-        border: '2px solid #BDBDBD',
-        borderRadius: 12,
-        margin: '0 auto',
-        maxWidth: 700,
-        padding: '32px 24px',
-        textAlign: 'center'
-      }}>
-        <div style={{ fontSize: '1.1rem', marginBottom: 24 }}>
-          먼저 지역을 선택해 주세요. 가까운 곳부터 시작해볼까요?
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 16 }}>
-          <select style={{ minWidth: 160, fontSize: '1.1rem' }} disabled>
+      <div style={styles.selectionBox}>
+        <p>먼저 지역을 선택해 주세요. 가까운 곳부터 시작해볼까요?</p>
+        <div style={styles.selectRow}>
+          <select disabled style={{ ...styles.select, backgroundColor: '#eee' }}>
             <option>서울특별시</option>
           </select>
+
           <select
-            style={{ minWidth: 160, fontSize: '1.1rem' }}
             value={selectedDistrict}
-            onChange={e => setSelectedDistrict(e.target.value)}
+            onChange={(e) => setSelectedDistrict(e.target.value)}
+            style={styles.select}
           >
             <option value="">지역구</option>
-            {districts.map(d => (
-              <option key={d} value={d}>{d}</option>
+            {districts.map((gu) => (
+              <option key={gu} value={gu}>{gu}</option>
             ))}
           </select>
-          <button
-            style={{
-              background: '#111',
-              color: '#fff',
-              fontWeight: 700,
-              fontSize: '1.1rem',
-              padding: '0 32px'
-            }}
-            onClick={handleSelect}
-          >
-            선택
-          </button>
+
+          <button onClick={handleSelect} style={styles.button}>선택</button>
         </div>
       </div>
     </div>
   );
 }
+
+const styles = {
+  container: {
+    padding: 40,
+    backgroundColor: '#f7f2e8',
+    fontFamily: "'Pretendard', sans-serif",
+    minHeight: '100vh',
+    boxSizing: 'border-box',
+  },
+  content: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 36,
+    lineHeight: 1.4,
+    marginBottom: 10,
+  },
+  subtitle: {
+    fontSize: 18,
+    margin: '6px 0',
+  },
+  highlight: {
+    marginTop: 12,
+    color: '#a5443f',
+    fontWeight: 'bold',
+  },
+  divider: {
+    margin: '40px 0',
+    borderTop: '1px dashed #aaa',
+  },
+  selectionBox: {
+    backgroundColor: '#fff',
+    padding: 24,
+    border: '1px solid #ccc',
+    borderRadius: 6,
+    maxWidth: 800,
+    margin: '0 auto',
+  },
+  selectRow: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: 16,
+    marginTop: 16,
+  },
+  select: {
+    padding: 10,
+    fontSize: 16,
+    borderRadius: 4,
+    border: '1px solid #aaa',
+    width: 160,
+  },
+  button: {
+    backgroundColor: '#000',
+    color: '#fff',
+    padding: '10px 18px',
+    fontSize: 16,
+    border: 'none',
+    cursor: 'pointer',
+  },
+};
 
 export default Home;

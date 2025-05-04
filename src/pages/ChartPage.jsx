@@ -1,88 +1,185 @@
-import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-
-const situations = [
-  { label: '친구랑 수다', color: '#E57373' },
-  { label: '기분전환이 필요할 때', color: '#F8BBD0' },
-  { label: '혼술하기 좋은', color: '#B0BEC5' },
-  { label: '아이와 함께', color: '#F06292' },
-  { label: '가족과 함께', color: '#9575CD' },
-  { label: '비 오는 날', color: '#78909C' },
-  { label: '해장하고 싶을 때', color: '#FFD54F' },
-  { label: '아식이 생각날 때', color: '#388E3C' },
-  { label: '건강 챙기고 싶을 때', color: '#E53935' },
-  { label: '분위기 좋은', color: '#F8BBD0' },
-  // ...원하는 만큼 추가
-];
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 function ChartPage() {
-  const navigate = useNavigate();
   const location = useLocation();
-  const params = new URLSearchParams(location.search);
-  const city = params.get('city') || '서울특별시';
-  const district = params.get('district') || '';
+  const navigate = useNavigate();
+  const { district } = location.state || {};
 
-  const handleBubbleClick = (situation) => {
-    // 식당 리스트 페이지로 이동
-    navigate(`/restaurants?city=${encodeURIComponent(city)}&district=${encodeURIComponent(district)}&situation=${encodeURIComponent(situation)}`);
+  const [clusters, setClusters] = useState([]);
+
+  useEffect(() => {
+    if (!district) {
+      navigate('/');
+      return;
+    }
+
+    const fetchClusters = async () => {
+      try {
+        const response = await axios.get(`https://api.where2eat.r-e.kr/regions/clusters`, {
+          params: { district },
+        });
+
+        const data = response.data;
+        const maxCount = Math.max(...data.map(c => Number(c.count) || 1), 1);
+
+        const rowCount = 3;
+        const spacing = 30;
+
+        const generatedClusters = data.map((c, idx) => {
+          const normalized = Math.max(Number(c.count), 1);
+          const size = 60 + 140 * (normalized / maxCount);
+
+          const row = idx % rowCount;
+          const col = Math.floor(idx / rowCount);
+
+          const top = 10 + row * spacing + Math.random() * 10;
+          const left = 10 + col * spacing + Math.random() * 10;
+
+          return {
+            ...c,
+            size,
+            top,
+            left,
+          };
+        });
+
+        setClusters(generatedClusters);
+      } catch (error) {
+        console.error('클러스터 불러오기 실패:', error);
+      }
+    };
+
+    fetchClusters();
+  }, [district, navigate]);
+
+  const handleClick = (clusterId, clusterName) => {
+    navigate('/detail', {
+      state: {
+        district,
+        clusterId,
+        clusterName,
+      },
+    });
   };
 
   return (
-    <div style={{ background: '#F6F1E7', minHeight: '100vh', padding: '0 0 40px 0' }}>
-      {/* 상단 네비게이션 */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px 40px 0 40px' }}>
-        <img src="/logo.png" alt="로고" style={{ width: 48, height: 48 }} />
-        <div style={{ display: 'flex', gap: '48px', fontSize: '1.1rem', fontWeight: 500 }}>
-          <span>검색</span>
-          <span>스크랩</span>
-          <span>마이페이지</span>
+    <div style={styles.container}>
+      <div style={styles.header}>
+        <div style={styles.selectBar}>
+          <select style={styles.select} disabled>
+            <option>서울특별시</option>
+          </select>
+          <select style={styles.select} disabled>
+            <option>{district}</option>
+          </select>
         </div>
-        <div style={{ width: 48, height: 48 }} />
+        <p>지금 당신의 상황에 딱 맞는 음식점을 골라볼까요?</p>
       </div>
-      {/* 안내 문구 */}
-      <div style={{ borderTop: '2px dashed #BDBDBD', margin: '32px 0 0 0' }} />
-      <div style={{ textAlign: 'center', margin: '40px 0 32px 0', fontSize: '1.3rem', fontWeight: 500 }}>
-        지금 당신의 상황에 딱 맞는 음식점을 골라볼까요?
+
+      <div style={styles.visualArea}>
+        {clusters.map((cluster, index) => {
+          const color = randomColor(index);
+          const fontSize = `${cluster.size * 0.11}px`; // 버블 크기에 비례한 글씨 크기
+
+          return (
+            <div
+              key={cluster.cluster_id}
+              onClick={() => handleClick(cluster.cluster_id, cluster.cluster_name)}
+              style={{
+                ...styles.bubble,
+                width: `${cluster.size}px`,
+                height: `${cluster.size}px`,
+                backgroundColor: color,
+                top: `${cluster.top}%`,
+                left: `${cluster.left}%`,
+                fontSize,
+              }}
+            >
+              <div style={styles.textWrapper}>
+                #{cluster.cluster_name}
+              </div>
+            </div>
+          );
+        })}
       </div>
-      {/* 버블 UI */}
-      <div style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        justifyContent: 'center',
-        alignItems: 'center',
-        gap: 24,
-        maxWidth: 900,
-        margin: '0 auto'
-      }}>
-        {situations.map((s, i) => (
-          <div
-            key={i}
-            onClick={() => handleBubbleClick(s.label)}
-            style={{
-              width: 120 + Math.random() * 60,
-              height: 120 + Math.random() * 60,
-              background: s.color,
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#fff',
-              fontWeight: 700,
-              fontSize: '1.1rem',
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-              textAlign: 'center',
-              padding: 12,
-              transition: 'transform 0.15s',
-            }}
-          >
-            #{' '}{s.label}
-          </div>
-        ))}
-      </div>
-      <div style={{ borderTop: '2px dashed #BDBDBD', margin: '40px 0 0 0' }} />
     </div>
   );
 }
+
+function randomColor(index) {
+  const colors = [
+    '#E57373', '#F06292', '#BA68C8', '#9575CD', '#7986CB',
+    '#64B5F6', '#4FC3F7', '#4DD0E1', '#4DB6AC', '#81C784',
+    '#AED581', '#DCE775', '#FFF176', '#FFD54F', '#FFB74D',
+    '#A1887F', '#90A4AE'
+  ];
+  return colors[index % colors.length];
+}
+
+const styles = {
+  container: {
+    backgroundColor: '#f7f2e8',
+    minHeight: '100vh',
+    padding: 30,
+    fontFamily: "'Pretendard', sans-serif",
+  },
+  header: {
+    textAlign: 'center',
+    marginBottom: 40,
+  },
+  selectBar: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: 10,
+    marginBottom: 10,
+  },
+  select: {
+    padding: 10,
+    fontSize: 16,
+    borderRadius: 4,
+    border: '1px solid #aaa',
+    width: 160,
+    backgroundColor: '#eee',
+  },
+  visualArea: {
+    position: 'relative',
+    width: '100%',
+    height: '80vh',
+    border: '1px dashed #ccc',
+    overflow: 'hidden',
+  },
+  bubble: {
+    position: 'absolute',
+    borderRadius: '50%',
+    cursor: 'pointer',
+    transform: 'translate(-50%, -50%)',
+    overflow: 'hidden',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    aspectRatio: '1 / 1',
+    color: '#fff',
+    fontWeight: '900',
+    textAlign: 'center',
+    padding: 0,
+    transition: 'transform 0.3s ease-in-out',
+  },
+  textWrapper: {
+    width: '90%',
+    height: '90%',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    textAlign: 'center',
+    wordBreak: 'keep-all',
+    overflowWrap: 'break-word',
+    hyphens: 'auto',
+    lineHeight: 1.3,
+    fontWeight: '900',
+    color: '#fff',
+  },
+};
 
 export default ChartPage;
