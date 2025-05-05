@@ -25,7 +25,7 @@ function Home() {
       <div style={styles.content}>
         <div style={styles.textSection}>
           <h1 style={styles.title}>오늘의 상황,<br />오늘의 맛집</h1>
-          <p style={styles.subtitle}>서울특별시 <span style={styles.num}>340,000</span>개의 식당 식당 데이터 수</p>
+          <p style={styles.subtitle}>서울특별시 <span style={styles.num}>342,873</span>개의 식당 식당 데이터 수</p>
           <p style={styles.subtitle}>수집된 총 리뷰 수</p>
           <p style={styles.highlight}>상황에 따라, 기분에 따라, 나만의 맛집을 만나보세요 !</p>
         </div>

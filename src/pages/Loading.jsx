@@ -14,7 +14,7 @@ function Loading() {
 
     const timer = setTimeout(() => {
       navigate('/chart', { state: { district } });
-    }, 1000); // 1초 후 chart 페이지로 이동
+    }, 3000); // 1초 후 chart 페이지로 이동
 
     return () => clearTimeout(timer);
   }, [district, navigate]);

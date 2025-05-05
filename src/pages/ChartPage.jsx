@@ -1,12 +1,16 @@
-import React, { useEffect, useState } from 'react';
+// ChartPage.jsx - 개선: 중심 위치 상단 이동 + 하위 버블 크기 확대 + count 비율 유지
+
+import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import * as d3 from 'd3';
 import axios from 'axios';
 
 function ChartPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { district } = location.state || {};
-  const [clusters, setClusters] = useState([]);
+  const svgRef = useRef();
+  const [data, setData] = useState([]);
 
   useEffect(() => {
     if (!district) {
@@ -20,150 +24,116 @@ function ChartPage() {
           params: { district },
         });
 
-        const data = response.data;
-        const maxCount = Math.max(...data.map(c => Number(c.count) || 1), 1);
+        const rawData = response.data;
+        const sorted = [...rawData].sort((a, b) => b.count - a.count);
+        const maxCount = Math.max(...sorted.map(d => Number(d.count) || 1), 1);
 
-        const generatedClusters = data.map((c, index) => {
-          const normalized = Math.max(Number(c.count), 1);
-          const size = 60 + 120 * (normalized / maxCount);
-          const color = randomColor(index);
+        const colors = [
+          '#E57373', '#F06292', '#BA68C8', '#9575CD', '#7986CB',
+          '#64B5F6', '#4FC3F7', '#4DD0E1', '#4DB6AC', '#81C784',
+          '#AED581', '#DCE775', '#FFF176', '#FFD54F', '#FFB74D',
+          '#A1887F', '#90A4AE'
+        ];
 
+        const finalData = sorted.map((d, i) => {
+          const baseCount = Number(d.count) || 1;
           return {
-            ...c,
-            size,
-            color,
+            ...d,
+            radius: i < 10
+              ? 40 + 100 * (baseCount / maxCount)
+              : 10 + 80 * (baseCount / maxCount),
+            color: colors[i % colors.length],
           };
         });
 
-        setClusters(generatedClusters);
-      } catch (error) {
-        console.error('클러스터 불러오기 실패:', error);
+        setData(finalData);
+      } catch (err) {
+        console.error('클러스터 불러오기 실패:', err);
       }
     };
 
     fetchClusters();
   }, [district, navigate]);
 
-  const handleClick = (clusterId, clusterName, color) => {
-    navigate('/detail', {
-      state: {
-        district,
-        clusterId,
-        clusterName,
-        color,
-      },
-    });
-  };
+  useEffect(() => {
+    if (!data.length) return;
+
+    const width = window.innerWidth;
+    const height = window.innerHeight * 1.3;
+
+    const svg = d3.select(svgRef.current)
+      .attr('width', width)
+      .attr('height', height);
+
+    svg.selectAll('*').remove();
+
+    const simulation = d3.forceSimulation(data)
+      .force('x', d3.forceX(width / 2).strength(0.07))
+      .force('y', d3.forceY(height / 2.5).strength(0.07))
+      .force('collision', d3.forceCollide().radius(d => d.radius + 5))
+      .alphaDecay(0.02)
+      .on('tick', ticked);
+
+    function ticked() {
+      const bubbles = svg.selectAll('g')
+        .data(data, d => d.cluster_id);
+
+      const enter = bubbles.enter().append('g')
+        .style('cursor', 'pointer')
+        .on('click', (event, d) => {
+          navigate('/detail', {
+            state: {
+              district,
+              clusterId: d.cluster_id,
+              clusterName: d.cluster_name,
+              color: d.color,
+            }
+          });
+        });
+
+      enter.append('circle')
+        .attr('r', d => d.radius)
+        .attr('fill', d => d.color);
+
+      enter.append('foreignObject')
+        .attr('x', d => -d.radius * 0.9)
+        .attr('y', d => -d.radius * 0.5)
+        .attr('width', d => d.radius * 1.8)
+        .attr('height', d => d.radius * 1.2)
+        .append('xhtml:div')
+        .style('width', '100%')
+        .style('height', '100%')
+        .style('display', 'flex')
+        .style('align-items', 'center')
+        .style('justify-content', 'center')
+        .style('text-align', 'center')
+        .style('color', '#fff')
+        .style('font-family', 'Pretendard, sans-serif')
+        .style('font-weight', 'bold')
+        .style('font-size', d => `${Math.max(10, d.radius * 0.21)}px`)
+        .style('line-height', '1.2')
+        .style('pointer-events', 'none')
+        .text(d => `#${d.cluster_name}`);
+
+      bubbles.merge(enter)
+        .attr('transform', d => `translate(${d.x},${d.y})`);
+    }
+  }, [data, district, navigate]);
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <div style={styles.selectBar}>
-          <select style={styles.select} disabled>
-            <option style={{ color: '#000' }}>서울특별시</option>
-          </select>
-          <select style={styles.select} disabled>
-            <option style={{ color: '#000' }}>{district}</option>
-          </select>
-        </div>
-        <p>지금 당신의 상황에 딱 맞는 음식점을 골라볼까요?</p>
+    <div style={{ backgroundColor: '#f7f2e8', minHeight: '100vh', overflow: 'hidden' }}>
+      <div style={{ textAlign: 'center', marginBottom: 20 }}>
+        <select disabled style={{ padding: 8, fontSize: 16 }}>
+          <option>서울특별시</option>
+        </select>
+        <select disabled style={{ padding: 8, fontSize: 16, marginLeft: 10 }}>
+          <option>{district}</option>
+        </select>
+        <p style={{ marginTop: 10 }}>지금 당신의 상황에 딱 맞는 음식점을 골라볼까요?</p>
       </div>
-
-      <div style={styles.visualArea}>
-        {clusters.map((cluster) => {
-          const fontSize = `${cluster.size * 0.11}px`;
-
-          return (
-            <div
-              key={cluster.cluster_id}
-              onClick={() => handleClick(cluster.cluster_id, cluster.cluster_name, cluster.color)}
-              style={{
-                ...styles.bubble,
-                width: cluster.size,
-                height: cluster.size,
-                backgroundColor: cluster.color,
-                fontSize,
-              }}
-            >
-              <div style={styles.textWrapper}>
-                #{cluster.cluster_name}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      <svg ref={svgRef}></svg>
     </div>
   );
 }
-
-function randomColor(index) {
-  const colors = [
-    '#E57373', '#F06292', '#BA68C8', '#9575CD', '#7986CB',
-    '#64B5F6', '#4FC3F7', '#4DD0E1', '#4DB6AC', '#81C784',
-    '#AED581', '#DCE775', '#FFF176', '#FFD54F', '#FFB74D',
-    '#A1887F', '#90A4AE'
-  ];
-  return colors[index % colors.length];
-}
-
-const styles = {
-  container: {
-    backgroundColor: '#f7f2e8',
-    minHeight: '100vh',
-    padding: 30,
-    fontFamily: "'Pretendard', sans-serif",
-  },
-  header: {
-    textAlign: 'center',
-    marginBottom: 40,
-  },
-  selectBar: {
-    display: 'flex',
-    justifyContent: 'center',
-    gap: 10,
-    marginBottom: 10,
-  },
-  select: {
-    padding: 10,
-    fontSize: 16,
-    borderRadius: 4,
-    border: '1px solid #aaa',
-    width: 160,
-    backgroundColor: '#eee',
-  },
-  visualArea: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: '20px',
-    width: '100%',
-    maxWidth: '1200px',
-    margin: '0 auto',
-    height: '80vh',
-    overflow: 'auto',
-  },
-  bubble: {
-    borderRadius: '50%',
-    aspectRatio: '1 / 1',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: '#fff',
-    fontWeight: '900',
-    cursor: 'pointer',
-    textAlign: 'center',
-  },
-  textWrapper: {
-    width: '90%',
-    textAlign: 'center',
-    wordBreak: 'keep-all',
-    overflowWrap: 'break-word',
-    hyphens: 'auto',
-    lineHeight: 1.3,
-    fontWeight: '900',
-    color: '#fff',
-  },
-};
 
 export default ChartPage;
