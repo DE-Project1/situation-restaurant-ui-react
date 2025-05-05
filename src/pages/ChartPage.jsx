@@ -69,7 +69,7 @@ function ChartPage() {
 
     const simulation = d3.forceSimulation(data)
       .force('x', d3.forceX(width / 2).strength(0.07))
-      .force('y', d3.forceY(height / 2.5).strength(0.07))
+      .force('y', d3.forceY(height / 1.8).strength(0.07))
       .force('collision', d3.forceCollide().radius(d => d.radius + 5))
       .alphaDecay(0.02)
       .on('tick', ticked);
