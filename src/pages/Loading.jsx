@@ -19,7 +19,7 @@ function Loading() {
 
     const timer = setTimeout(() => {
       navigate('/chart', { state: { district } });
-    }, 3000);
+    }, 2000);
 
     const handleResize = () => {
       setFontSize(getFontSize(window.innerWidth));

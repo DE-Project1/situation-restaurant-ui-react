@@ -61,27 +61,32 @@ function ChartPage() {
 
   useEffect(() => {
     if (!data.length) return;
-
+  
     const width = window.innerWidth;
-    const height = window.innerHeight * 1.6;
-
+    const isMobile = width <= 480;
+    const height = isMobile
+      ? window.innerHeight * 1.1  // 모바일은 짧게
+      : window.innerHeight * 1.6;
+  
+    const centerY = isMobile ? height / 2.2 : height / 2.0;
+  
     const svg = d3.select(svgRef.current)
       .attr('width', width)
       .attr('height', height);
-
+  
     svg.selectAll('*').remove();
-
+  
     const simulation = d3.forceSimulation(data)
       .force('x', d3.forceX(width / 2).strength(0.07))
-      .force('y', d3.forceY(height / 2.0).strength(0.07))
+      .force('y', d3.forceY(centerY).strength(0.07)) // 여기가 핵심!
       .force('collision', d3.forceCollide().radius(d => d.radius + 5))
       .alphaDecay(0.02)
       .on('tick', ticked);
-
+  
     function ticked() {
       const bubbles = svg.selectAll('g')
         .data(data, d => d.cluster_id);
-
+  
       const enter = bubbles.enter().append('g')
         .style('cursor', 'pointer')
         .on('click', (event, d) => {
@@ -94,11 +99,11 @@ function ChartPage() {
             }
           });
         });
-
+  
       enter.append('circle')
         .attr('r', d => d.radius)
         .attr('fill', d => d.color);
-
+  
       enter.append('foreignObject')
         .attr('x', d => -d.radius * 0.9)
         .attr('y', d => -d.radius * 0.5)
@@ -118,12 +123,12 @@ function ChartPage() {
         .style('line-height', '1.2')
         .style('pointer-events', 'none')
         .text(d => `#${d.cluster_name}`);
-
+  
       bubbles.merge(enter)
         .attr('transform', d => `translate(${d.x},${d.y})`);
     }
-  }, [data, district, navigate]);
-
+  }, [data, district, navigate]);  
+  
   return (
     <div style={{ backgroundColor: '#f7f2e8', minHeight: '100vh' }}>
       <div style={{ textAlign: 'center', marginBottom: 20 }}>
