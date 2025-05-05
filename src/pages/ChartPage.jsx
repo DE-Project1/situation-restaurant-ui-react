@@ -1,4 +1,4 @@
-// ChartPage.jsx - 개선: 중심 위치 상단 이동 + 하위 버블 크기 확대 + count 비율 유지
+// src/pages/ChartPage.jsx
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -121,7 +121,7 @@ function ChartPage() {
   }, [data, district, navigate]);
 
   return (
-    <div style={{ backgroundColor: '#f7f2e8', minHeight: '100vh', overflow: 'hidden' }}>
+    <div style={{ backgroundColor: '#f7f2e8', minHeight: '100vh' }}>
       <div style={{ textAlign: 'center', marginBottom: 20 }}>
         <select disabled style={{ padding: 8, fontSize: 16 }}>
           <option>서울특별시</option>
