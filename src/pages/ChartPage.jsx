@@ -40,8 +40,8 @@ function ChartPage() {
           return {
             ...d,
             radius: i < 10
-              ? 40 + 100 * (baseCount / maxCount)
-              : 10 + 80 * (baseCount / maxCount),
+              ? 40 + 80 * (baseCount / maxCount)
+              : 10 + 60 * (baseCount / maxCount),
             color: colors[i % colors.length],
           };
         });
@@ -59,7 +59,7 @@ function ChartPage() {
     if (!data.length) return;
 
     const width = window.innerWidth;
-    const height = window.innerHeight * 1.3;
+    const height = window.innerHeight * 1.6;
 
     const svg = d3.select(svgRef.current)
       .attr('width', width)
@@ -69,7 +69,7 @@ function ChartPage() {
 
     const simulation = d3.forceSimulation(data)
       .force('x', d3.forceX(width / 2).strength(0.07))
-      .force('y', d3.forceY(height / 1.8).strength(0.07))
+      .force('y', d3.forceY(height / 1.5).strength(0.07))
       .force('collision', d3.forceCollide().radius(d => d.radius + 5))
       .alphaDecay(0.02)
       .on('tick', ticked);
