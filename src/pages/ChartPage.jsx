@@ -28,6 +28,9 @@ function ChartPage() {
         const sorted = [...rawData].sort((a, b) => b.count - a.count);
         const maxCount = Math.max(...sorted.map(d => Number(d.count) || 1), 1);
 
+        const screenWidth = window.innerWidth;
+        const scaleFactor = screenWidth < 480 ? 0.55 : screenWidth < 768 ? 0.8 : 1.0;
+
         const colors = [
           '#E57373', '#F06292', '#BA68C8', '#9575CD', '#7986CB',
           '#64B5F6', '#4FC3F7', '#4DD0E1', '#4DB6AC', '#81C784',
@@ -37,11 +40,12 @@ function ChartPage() {
 
         const finalData = sorted.map((d, i) => {
           const baseCount = Number(d.count) || 1;
+          const rawRadius = i < 10
+            ? 40 + 80 * (baseCount / maxCount)
+            : 10 + 60 * (baseCount / maxCount);
           return {
             ...d,
-            radius: i < 10
-              ? 40 + 80 * (baseCount / maxCount)
-              : 10 + 60 * (baseCount / maxCount),
+            radius: rawRadius * scaleFactor,
             color: colors[i % colors.length],
           };
         });
@@ -69,7 +73,7 @@ function ChartPage() {
 
     const simulation = d3.forceSimulation(data)
       .force('x', d3.forceX(width / 2).strength(0.07))
-      .force('y', d3.forceY(height / 1.5).strength(0.07))
+      .force('y', d3.forceY(height / 2.0).strength(0.07))
       .force('collision', d3.forceCollide().radius(d => d.radius + 5))
       .alphaDecay(0.02)
       .on('tick', ticked);

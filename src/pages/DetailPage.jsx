@@ -7,7 +7,16 @@ function DetailPage() {
   const { district, clusterId, clusterName, color } = location.state || {};
   const [places, setPlaces] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 480);
   const itemsPerPage = 21;
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 480);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     if (!district || !clusterId) return;
@@ -21,7 +30,7 @@ function DetailPage() {
           },
         });
         setPlaces(response.data);
-        setCurrentPage(1); // Reset page when data updates
+        setCurrentPage(1);
       } catch (error) {
         console.error('음식점 리스트 불러오기 실패:', error);
       }
@@ -41,10 +50,8 @@ function DetailPage() {
       for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {
       pages.push(1);
-
       const left = Math.max(2, currentPage - 2);
       const right = Math.min(totalPages - 1, currentPage + 2);
-
       if (left > 2) pages.push('...');
       for (let i = left; i <= right; i++) pages.push(i);
       if (right < totalPages - 1) pages.push('...');
@@ -57,13 +64,12 @@ function DetailPage() {
   return (
     <div style={styles.container}>
       <h2 style={styles.title}>
-  <span style={{ color: '#555' }}>{district}</span>
-  <br />
-  <span style={{ color: color || '#333' }}>
-    {clusterName}에 어울리는 음식점
-  </span>
-</h2>
-
+        <span style={{ color: '#555' }}>{district}</span>
+        <br />
+        <span style={{ color: color || '#333' }}>
+          {clusterName}에 어울리는 음식점
+        </span>
+      </h2>
 
       <div style={styles.list}>
         {currentItems.length > 0 ? (
@@ -75,7 +81,14 @@ function DetailPage() {
               rel="noopener noreferrer"
               style={styles.cardLink}
             >
-              <div style={styles.card}>
+              <div
+                style={{
+                  ...styles.card,
+                  width: isMobile ? '30%' : 260,
+                  maxWidth: 260,
+                  minWidth: isMobile ? undefined : 200,
+                }}
+              >
                 <h3 style={styles.name}>{place.name}</h3>
                 <p style={styles.category}>{place.category}</p>
                 <p style={styles.address}>{place.address}</p>
@@ -154,26 +167,26 @@ const styles = {
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 20,
-    width: 260,
+    boxSizing: 'border-box',
     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
   },
   name: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 8,
   },
   category: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#444',
     marginBottom: 4,
   },
   address: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#777',
     marginBottom: 4,
   },
   rating: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#222',
     marginTop: 10,
