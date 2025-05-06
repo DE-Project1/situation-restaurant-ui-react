@@ -1,5 +1,3 @@
-// src/pages/ChartPage.jsx
-
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import * as d3 from 'd3';
@@ -10,6 +8,7 @@ function ChartPage() {
   const navigate = useNavigate();
   const { district } = location.state || {};
   const svgRef = useRef();
+  const scrollWrapperRef = useRef(null);
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -61,32 +60,30 @@ function ChartPage() {
 
   useEffect(() => {
     if (!data.length) return;
-  
-    const width = window.innerWidth;
-    const isMobile = width <= 480;
-    const height = isMobile
-      ? window.innerHeight * 1.1  // 모바일은 짧게
-      : window.innerHeight * 1.6;
-  
-    const centerY = isMobile ? height / 2.2 : height / 2.0;
-  
+
+    const isMobile = window.innerWidth <= 480;
+    const screenWidth = window.innerWidth;
+    const svgWidth = isMobile ? screenWidth * 2 : screenWidth;
+    const svgHeight = isMobile ? window.innerHeight * 1.1 : window.innerHeight * 1.6;
+    const centerY = isMobile ? svgHeight / 2.2 : svgHeight / 2.0;
+
     const svg = d3.select(svgRef.current)
-      .attr('width', width)
-      .attr('height', height);
-  
+      .attr('width', svgWidth)
+      .attr('height', svgHeight);
+
     svg.selectAll('*').remove();
-  
+
     const simulation = d3.forceSimulation(data)
-      .force('x', d3.forceX(width / 2).strength(0.07))
-      .force('y', d3.forceY(centerY).strength(0.07)) // 여기가 핵심!
+      .force('x', d3.forceX(svgWidth / 2).strength(0.07))
+      .force('y', d3.forceY(centerY).strength(0.07))
       .force('collision', d3.forceCollide().radius(d => d.radius + 5))
       .alphaDecay(0.02)
       .on('tick', ticked);
-  
+
     function ticked() {
       const bubbles = svg.selectAll('g')
         .data(data, d => d.cluster_id);
-  
+
       const enter = bubbles.enter().append('g')
         .style('cursor', 'pointer')
         .on('click', (event, d) => {
@@ -99,11 +96,11 @@ function ChartPage() {
             }
           });
         });
-  
+
       enter.append('circle')
         .attr('r', d => d.radius)
         .attr('fill', d => d.color);
-  
+
       enter.append('foreignObject')
         .attr('x', d => -d.radius * 0.9)
         .attr('y', d => -d.radius * 0.5)
@@ -123,12 +120,18 @@ function ChartPage() {
         .style('line-height', '1.2')
         .style('pointer-events', 'none')
         .text(d => `#${d.cluster_name}`);
-  
+
       bubbles.merge(enter)
         .attr('transform', d => `translate(${d.x},${d.y})`);
     }
-  }, [data, district, navigate]);  
-  
+
+    // ✅ 페이지 로딩 후 중앙으로 스크롤 이동
+    if (scrollWrapperRef.current) {
+      const wrapper = scrollWrapperRef.current;
+      wrapper.scrollLeft = (svgWidth - wrapper.clientWidth) / 2;
+    }
+  }, [data, district, navigate]);
+
   return (
     <div style={{ backgroundColor: '#f7f2e8', minHeight: '100vh' }}>
       <div style={{ textAlign: 'center', marginBottom: 20 }}>
@@ -140,7 +143,13 @@ function ChartPage() {
         </select>
         <p style={{ marginTop: 10 }}>지금 당신의 상황에 딱 맞는 음식점을 골라볼까요?</p>
       </div>
-      <svg ref={svgRef}></svg>
+
+      <div
+        ref={scrollWrapperRef}
+        style={{ overflowX: 'auto', width: '100%' }}
+      >
+        <svg ref={svgRef} style={{ display: 'block' }}></svg>
+      </div>
     </div>
   );
 }

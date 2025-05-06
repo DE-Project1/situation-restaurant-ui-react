@@ -57,12 +57,12 @@ function DetailPage() {
   return (
     <div style={styles.container}>
       <h2 style={styles.title}>
-  <span style={{ color: '#555' }}>{district}</span>
-  <br />
-  <span style={{ color: color || '#333' }}>
-    {clusterName}에 어울리는 음식점
-  </span>
-</h2>
+        <span style={{ color: '#555' }}>{district}</span>
+        <br />
+        <span style={{ color: color || '#333' }}>
+          {clusterName}에 어울리는 음식점
+        </span>
+      </h2>
 
       <div style={styles.list}>
         {currentItems.length > 0 ? (
