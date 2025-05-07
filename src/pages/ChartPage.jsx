@@ -10,9 +10,16 @@ function ChartPage() {
   const svgRef = useRef();
   const scrollWrapperRef = useRef(null);
   const [data, setData] = useState([]);
+  const [selectedDistrict, setSelectedDistrict] = useState(district);
+
+  const districts = [
+    '강남구', '강동구', '강북구', '강서구', '관악구', '광진구', '구로구', '금천구',
+    '노원구', '도봉구', '동대문구', '동작구', '마포구', '서대문구', '서초구', '성동구',
+    '성북구', '송파구', '양천구', '영등포구', '용산구', '은평구', '종로구', '중구', '중랑구'
+  ];
 
   useEffect(() => {
-    if (!district) {
+    if (!selectedDistrict) {
       navigate('/');
       return;
     }
@@ -20,7 +27,7 @@ function ChartPage() {
     const fetchClusters = async () => {
       try {
         const response = await axios.get(`https://api.where2eat.r-e.kr/regions/clusters`, {
-          params: { district },
+          params: { district: selectedDistrict },
         });
 
         const rawData = response.data;
@@ -56,7 +63,7 @@ function ChartPage() {
     };
 
     fetchClusters();
-  }, [district, navigate]);
+  }, [selectedDistrict, navigate]);
 
   useEffect(() => {
     if (!data.length) return;
@@ -89,7 +96,7 @@ function ChartPage() {
         .on('click', (event, d) => {
           navigate('/detail', {
             state: {
-              district,
+              district: selectedDistrict,
               clusterId: d.cluster_id,
               clusterName: d.cluster_name,
               color: d.color,
@@ -125,12 +132,11 @@ function ChartPage() {
         .attr('transform', d => `translate(${d.x},${d.y})`);
     }
 
-    // ✅ 페이지 로딩 후 중앙으로 스크롤 이동
     if (scrollWrapperRef.current) {
       const wrapper = scrollWrapperRef.current;
       wrapper.scrollLeft = (svgWidth - wrapper.clientWidth) / 2;
     }
-  }, [data, district, navigate]);
+  }, [data, selectedDistrict, navigate]);
 
   return (
     <div style={{ backgroundColor: '#f7f2e8', minHeight: '100vh' }}>
@@ -138,16 +144,19 @@ function ChartPage() {
         <select disabled style={{ padding: 8, fontSize: 16 }}>
           <option>서울특별시</option>
         </select>
-        <select disabled style={{ padding: 8, fontSize: 16, marginLeft: 10 }}>
-          <option>{district}</option>
+        <select 
+          value={selectedDistrict}
+          onChange={(e) => setSelectedDistrict(e.target.value)}
+          style={{ padding: 8, fontSize: 16, marginLeft: 10 }}
+        >
+          {districts.map((gu) => (
+            <option key={gu} value={gu}>{gu}</option>
+          ))}
         </select>
         <p style={{ marginTop: 10 }}>지금 당신의 상황에 딱 맞는 음식점을 골라볼까요?</p>
       </div>
 
-      <div
-        ref={scrollWrapperRef}
-        style={{ overflowX: 'auto', width: '100%' }}
-      >
+      <div ref={scrollWrapperRef} style={{ overflowX: 'auto', width: '100%' }}>
         <svg ref={svgRef} style={{ display: 'block' }}></svg>
       </div>
     </div>
